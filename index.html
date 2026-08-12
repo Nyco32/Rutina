@@ -179,6 +179,34 @@ h1{
 .logrow input::placeholder{color:rgba(155,134,184,.6)}
 .logrow input:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 2px rgba(34,232,245,.22)}
 
+/* cálculo RPT */
+.calc{
+  margin:10px 0 0;border-top:1px dashed rgba(34,232,245,.25);padding-top:9px;
+  display:none
+}
+.calc.on{display:block}
+.calc .ct{
+  font-family:var(--data);font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 6px
+}
+.calcgrid{display:flex;gap:6px;flex-wrap:wrap}
+.chip{
+  flex:1 1 0;min-width:70px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);
+  border-radius:5px;padding:6px 7px;text-align:center
+}
+.chip.warm{border-color:rgba(34,232,245,.3);background:rgba(34,232,245,.07)}
+.chip.work{border-color:rgba(255,201,60,.35);background:rgba(255,201,60,.07)}
+.chip .k{
+  display:block;font-family:var(--data);font-size:8.5px;letter-spacing:.1em;
+  color:var(--dim);margin-bottom:2px
+}
+.chip .v{
+  display:block;font-family:var(--data);font-weight:700;font-size:14px;color:var(--cream)
+}
+.chip.work .v{color:var(--gold)}
+.chip.warm .v{color:var(--cyan)}
+.chip .r{display:block;font-family:var(--data);font-size:8.5px;color:var(--dim);margin-top:1px}
+
 .restbtn{
   border:1px solid rgba(34,232,245,.45);background:rgba(34,232,245,.09);color:var(--cyan);
   font-family:var(--data);font-size:10.5px;letter-spacing:.1em;padding:7px 10px;border-radius:5px;
@@ -322,14 +350,15 @@ const DAYS = [
         {id:"d1-hs", n:"Handstand contra la pared", rx:"8-10 min · series con descanso entre intentos", sets:5, unit:"seg", skill:true, note:"Alineación y empujar el piso con las manos."}
       ]},
       {name:"Bloque de fuerza", tag:"RPT", ex:[
-        {id:"d1-fondos", n:"Fondos en paralelas", rx:"3 series | 4-6 / 6-8 (-10%) / 8-10 (-20%)", sets:3, unit:"kg", def:"20", rest:180, note:"No bajes de 90° de flexión de codo si sentís pinzamiento."},
-        {id:"d1-sent", n:"Sentadilla con barra", rx:"3 series | 6-8 / 8-10 (-10%) / 10-12 (-20%)", sets:3, unit:"kg", rest:180}
+        {id:"d1-fondos", n:"Fondos en paralelas", rx:"3 series | 4-6 / 6-8 (-10%) / 8-10 (-20%)", sets:3, unit:"kg", def:"20", rest:180, rpt:["4-6","6-8","8-10"], lastre:true, note:"No bajes de 90° de flexión de codo si sentís pinzamiento."},
+        {id:"d1-sent", n:"Sentadilla con barra", rx:"3 series | 6-8 / 8-10 (-10%) / 10-12 (-20%)", sets:3, unit:"kg", rest:180, rpt:["6-8","8-10","10-12"]}
       ]},
       {name:"Bloque de hipertrofia", ex:[
         {id:"d1-press", n:"Press inclinado con mancuernas", rx:"3 series | 8-12 repes", sets:3, unit:"kg", def:"16", rest:90},
         {id:"d1-cuad", n:"Extensión de cuádriceps", rx:"3 series | 10-12 repes", sets:3, unit:"kg", rest:90},
         {id:"d1-apert", n:"Apertura con mancuernas o polea", rx:"3 series | 12-15 repes", sets:3, unit:"kg", rest:90, note:"Codos fijos, sin bajar más allá de la línea del pecho."},
-        {id:"d1-super", n:"Superserie: elevaciones laterales + extensión de tríceps", rx:"3 series | 12-15 repes cada una", sets:3, unit:"kg", rest:90},
+        {id:"d1-super", n:"Superserie: elevaciones laterales + extensión de tríceps", rx:"3 series | 12-15 repes cada una", sets:3, unit:"kg", rest:90,
+         fields:[{k:"a", lbl:"laterales"},{k:"b", lbl:"tríceps"}]},
         {id:"d1-rueda", n:"Rueda abdominal", rx:"3 series | 8-10 repes", sets:3, unit:"nota", note:"Cortá la rep si se arquea la lumbar."}
       ]}
     ]
@@ -352,12 +381,13 @@ const DAYS = [
         {id:"d2-fl", n:"Front lever — advanced tuck, sin banda", rx:"5 series | 8-12 seg de sostén · descanso 60-90 seg", sets:5, unit:"seg", skill:true, rest:90, note:"Que no se abra la cadera para ganar ángulo."}
       ]},
       {name:"Bloque de fuerza", tag:"RPT", ex:[
-        {id:"d2-dom", n:"Dominadas lastradas", rx:"3 series | 4-6 / 6-8 (-10%) / 8-10 (-20%)", sets:3, unit:"kg", def:"5", rest:180},
+        {id:"d2-dom", n:"Dominadas lastradas", rx:"3 series | 4-6 / 6-8 (-10%) / 8-10 (-20%)", sets:3, unit:"kg", def:"5", rest:180, rpt:["4-6","6-8","8-10"], lastre:true},
         {id:"d2-remo", n:"Remo a un brazo con mancuerna", rx:"3 series | 8-12 repes", sets:3, unit:"kg", def:"18", rest:90},
         {id:"d2-nord", n:"Curl nórdico asistido", rx:"3 series | 5-8 repes", sets:3, unit:"nota", note:"Flexión de rodilla, no bisagra de cadera. Si tira o hormiguea, sacalo."}
       ]},
       {name:"Bloque de hipertrofia", ex:[
-        {id:"d2-super", n:"Superserie: face pull + curl de bíceps", rx:"3 series | 12-15 repes cada una", sets:3, unit:"kg", rest:90},
+        {id:"d2-super", n:"Superserie: face pull + curl de bíceps", rx:"3 series | 12-15 repes cada una", sets:3, unit:"kg", rest:90,
+         fields:[{k:"a", lbl:"face pull"},{k:"b", lbl:"bíceps"}]},
         {id:"d2-gemelo", n:"Elevación de talones de pie", rx:"3 series | 15-20 repes", sets:3, unit:"kg", rest:60},
         {id:"d2-lat", n:"Elevaciones laterales", rx:"3 series | 8-12 repes", sets:3, unit:"kg", rest:60},
         {id:"d2-plancha", n:"Plancha avanzada o con peso", rx:"3 series | 20-40 seg", sets:3, unit:"seg", rest:60}
@@ -433,6 +463,31 @@ function save(){
 /* ---------- render ---------- */
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
+/* redondeo a los discos que realmente existen */
+function round(v, step){ return Math.round(v/step)*step; }
+
+function calcHTML(x, raw){
+  const w = parseFloat(String(raw||'').replace(',','.'));
+  if(!isFinite(w) || w<=0) return '';
+  const step = x.lastre ? 1.25 : 2.5;  // lastre suele tener discos más chicos
+  const s2 = round(w*0.90, step), s3 = round(w*0.80, step);
+  const a1 = round(w*0.60, step), a2 = round(w*0.80, step);
+  const u = ' kg';
+  return `
+    <p class="ct">Aproximación</p>
+    <div class="calcgrid">
+      <div class="chip warm"><span class="k">sin peso</span><span class="v">—</span><span class="r">8 repes</span></div>
+      <div class="chip warm"><span class="k">60%</span><span class="v">${a1}${u}</span><span class="r">5-6 repes</span></div>
+      <div class="chip warm"><span class="k">80%</span><span class="v">${a2}${u}</span><span class="r">2-3 repes</span></div>
+    </div>
+    <p class="ct" style="margin-top:9px">Series efectivas</p>
+    <div class="calcgrid">
+      <div class="chip work"><span class="k">1ª · 100%</span><span class="v">${round(w,0.5)}${u}</span><span class="r">${x.rpt[0]} repes</span></div>
+      <div class="chip work"><span class="k">2ª · -10%</span><span class="v">${s2}${u}</span><span class="r">${x.rpt[1]} repes</span></div>
+      <div class="chip work"><span class="k">3ª · -20%</span><span class="v">${s3}${u}</span><span class="r">${x.rpt[2]} repes</span></div>
+    </div>`;
+}
+
 function render(){
   const d = DAYS[state.day];
   let h = `<h2 class="daytitle">${esc(d.title)}</h2><p class="daysub">${esc(d.sub)}</p>`;
@@ -457,15 +512,38 @@ function render(){
       for(let i=0;i<x.sets;i++){
         h += `<button class="bulb" data-ex="${x.id}" data-i="${i}" aria-pressed="${done.includes(i)?'true':'false'}" aria-label="Serie ${i+1}">${i+1}</button>`;
       }
-      h += `</div><div class="logrow">
-        <label for="in-${x.id}">${x.unit==='nota'?'nota':x.unit}</label>
-        <input id="in-${x.id}" data-log="${x.id}" value="${esc(state.logs[x.id]||'')}" placeholder="${x.unit==='seg'?'seg por serie':(x.unit==='nota'?'cómo salió':'peso')}">`;
-      if(x.rest) h += `<button class="restbtn" data-rest="${x.rest}">⏱ ${Math.floor(x.rest/60)}:${String(x.rest%60).padStart(2,'0')}</button>`;
-      h += `</div></article>`;
+      h += `</div>`;
+
+      if(x.fields){
+        // superserie: un campo por ejercicio
+        x.fields.forEach((f,fi)=>{
+          const fid = x.id+':'+f.k;
+          h += `<div class="logrow">
+            <label for="in-${fid}">${esc(f.lbl)}</label>
+            <input id="in-${fid}" data-log="${fid}" value="${esc(state.logs[fid]||'')}" placeholder="peso">`;
+          if(fi===0 && x.rest) h += `<button class="restbtn" data-rest="${x.rest}">⏱ ${Math.floor(x.rest/60)}:${String(x.rest%60).padStart(2,'0')}</button>`;
+          h += `</div>`;
+        });
+      } else {
+        h += `<div class="logrow">
+          <label for="in-${x.id}">${x.unit==='nota'?'nota':x.unit}</label>
+          <input id="in-${x.id}" data-log="${x.id}" ${x.rpt?'inputmode="decimal"':''} value="${esc(state.logs[x.id]||'')}" placeholder="${x.rpt?'peso de la 1ª serie':(x.unit==='seg'?'seg por serie':(x.unit==='nota'?'cómo salió':'peso'))}">`;
+        if(x.rest) h += `<button class="restbtn" data-rest="${x.rest}">⏱ ${Math.floor(x.rest/60)}:${String(x.rest%60).padStart(2,'0')}</button>`;
+        h += `</div>`;
+      }
+
+      if(x.rpt){
+        h += `<div class="calc" id="calc-${x.id}" data-calc="${x.id}">${calcHTML(x, state.logs[x.id])}</div>`;
+      }
+      h += `</article>`;
     });
     h += `</section>`;
   });
   app.innerHTML = h;
+  // mostrar las cajas de cálculo que ya tengan peso
+  app.querySelectorAll('[data-calc]').forEach(box=>{
+    box.classList.toggle('on', box.innerHTML.trim().length>0);
+  });
 }
 
 /* ---------- interacción ---------- */
@@ -493,8 +571,24 @@ app.addEventListener('click',e=>{
 
 app.addEventListener('input',e=>{
   const inp = e.target.closest('[data-log]');
-  if(inp){ state.logs[inp.dataset.log] = inp.value; save(); }
+  if(!inp) return;
+  const id = inp.dataset.log;
+  state.logs[id] = inp.value;
+  const box = document.getElementById('calc-'+id);
+  if(box){
+    const x = findEx(id);
+    const html = x ? calcHTML(x, inp.value) : '';
+    box.innerHTML = html;
+    box.classList.toggle('on', !!html);
+  }
+  save();
 });
+
+function findEx(id){
+  for(const d of DAYS) for(const b of d.blocks) for(const x of (b.ex||[]))
+    if(x.id===id) return x;
+  return null;
+}
 
 document.getElementById('reset').addEventListener('click',()=>{
   const d = DAYS[state.day];
