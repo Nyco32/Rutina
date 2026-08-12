@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rutina — Circo Digital</title>
+<meta name="theme-color" content="#150A24">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rutina">
+<meta name="description" content="Rutina de gimnasio de 3 días con registro de series, pesos y timer de descanso.">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23150A24'/%3E%3Cg fill='none' stroke='%23FFC93C' stroke-width='26' stroke-linecap='round'%3E%3Cpath d='M120 200v112M392 200v112M78 226v60M434 226v60'/%3E%3Cpath d='M120 256h272' stroke='%23FF2E88'/%3E%3C/g%3E%3Ccircle cx='256' cy='256' r='30' fill='%2322E8F5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -633,6 +640,31 @@ function startTimer(sec){
 }
 document.querySelectorAll('.preset[data-sec]').forEach(b=>b.addEventListener('click',()=>startTimer(+b.dataset.sec)));
 document.getElementById('stop').addEventListener('click',()=>{ clearInterval(tick); total=0; left=0; paint(); });
+
+/* ---------- manifest embebido (para que se instale como app) ---------- */
+(function(){
+  const icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23150A24'/%3E%3Cg fill='none' stroke='%23FFC93C' stroke-width='26' stroke-linecap='round'%3E%3Cpath d='M120 200v112M392 200v112M78 226v60M434 226v60'/%3E%3Cpath d='M120 256h272' stroke='%23FF2E88'/%3E%3C/g%3E%3Ccircle cx='256' cy='256' r='30' fill='%2322E8F5'/%3E%3C/svg%3E";
+  const manifest = {
+    name: "Rutina — Circo Digital",
+    short_name: "Rutina",
+    start_url: ".",
+    scope: ".",
+    display: "standalone",
+    orientation: "portrait",
+    background_color: "#150A24",
+    theme_color: "#150A24",
+    icons: [
+      { src: icon, sizes: "192x192", type: "image/svg+xml", purpose: "any" },
+      { src: icon, sizes: "512x512", type: "image/svg+xml", purpose: "any" },
+      { src: icon, sizes: "512x512", type: "image/svg+xml", purpose: "maskable" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = URL.createObjectURL(blob);
+  document.head.appendChild(link);
+})();
 
 paint();
 load();
