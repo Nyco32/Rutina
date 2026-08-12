@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rutina — Circo Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#150A24;
+  --void2:#1F0F33;
+  --void3:#2A1745;
+  --magenta:#FF2E88;
+  --cyan:#22E8F5;
+  --gold:#FFC93C;
+  --cream:#FFF2DC;
+  --dim:#9B86B8;
+  --display:'Bungee',system-ui,sans-serif;
+  --body:'Space Grotesk',system-ui,sans-serif;
+  --data:'Space Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--void);
+  color:var(--cream);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.5;
+  padding-bottom:132px;
+  overflow-x:hidden;
+}
+/* carpa: rayas radiales muy tenues desde arriba */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 120% 70% at 50% -10%, rgba(255,46,136,.20), transparent 60%),
+    repeating-conic-gradient(from 0deg at 50% -20%,
+      rgba(255,255,255,.030) 0deg 4deg, transparent 4deg 8deg);
+}
+/* scanlines CRT */
+body::after{
+  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(to bottom, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
+  opacity:.5;mix-blend-mode:multiply;
+}
+.wrap{position:relative;z-index:2;max-width:720px;margin:0 auto;padding:0 14px}
+
+/* ---------- marquesina ---------- */
+.bulbrail{
+  height:14px;margin:0 -14px;
+  background-image:radial-gradient(circle, var(--gold) 0 2.4px, rgba(255,201,60,.18) 2.6px 4px, transparent 4.2px);
+  background-size:22px 14px;background-position:center;
+  filter:drop-shadow(0 0 5px rgba(255,201,60,.55));
+}
+@media (prefers-reduced-motion:no-preference){
+  .bulbrail{animation:chase 1.4s steps(2) infinite}
+  @keyframes chase{to{background-position:22px center}}
+}
+header{padding:20px 0 8px;text-align:center}
+.eyebrow{
+  font-family:var(--data);font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--cyan);margin:14px 0 8px
+}
+h1{
+  font-family:var(--display);font-size:clamp(40px,13vw,74px);line-height:.94;
+  margin:0;color:var(--cream);letter-spacing:.01em;
+  text-shadow:
+    -3px 0 0 var(--magenta),
+     3px 0 0 var(--cyan),
+     0 0 26px rgba(255,46,136,.5);
+}
+@media (prefers-reduced-motion:no-preference){
+  h1{animation:glitch 7s infinite}
+  @keyframes glitch{
+    0%,94%,100%{transform:translate(0);text-shadow:-3px 0 0 var(--magenta),3px 0 0 var(--cyan),0 0 26px rgba(255,46,136,.5)}
+    95%{transform:translate(2px,-1px);text-shadow:-7px 0 0 var(--magenta),6px 1px 0 var(--cyan),0 0 26px rgba(34,232,245,.6)}
+    96.5%{transform:translate(-2px,1px);text-shadow:5px 0 0 var(--magenta),-5px 0 0 var(--cyan),0 0 26px rgba(255,46,136,.5)}
+  }
+}
+.tagline{font-family:var(--data);font-size:11.5px;color:var(--dim);margin:8px 0 2px;letter-spacing:.05em}
+
+/* ---------- entradas / días ---------- */
+.stubs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:20px 0 6px}
+.stub{
+  position:relative;border:0;cursor:pointer;padding:11px 6px 10px;
+  background:var(--cream);color:var(--void);
+  font-family:var(--display);font-size:clamp(11px,3.1vw,14px);
+  border-radius:4px;
+  clip-path:polygon(0 0,100% 0,100% 38%,calc(100% - 5px) 50%,100% 62%,100% 100%,0 100%,0 62%,5px 50%,0 38%);
+  transition:transform .12s ease, box-shadow .12s ease;
+  display:block;width:100%;
+}
+.stub .n{display:block;font-family:var(--data);font-size:9.5px;letter-spacing:.2em;opacity:.55;margin-bottom:2px}
+.stub[aria-selected="true"]{
+  background:var(--gold);
+  box-shadow:0 0 0 2px var(--void),0 0 22px rgba(255,201,60,.75);
+  transform:translateY(-2px)
+}
+.stub:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+
+.daytitle{
+  font-family:var(--display);font-size:19px;margin:22px 0 2px;color:var(--gold);
+  text-shadow:0 0 18px rgba(255,201,60,.4)
+}
+.daysub{font-family:var(--data);font-size:11px;color:var(--dim);margin:0 0 16px;letter-spacing:.06em}
+
+/* ---------- bloques ---------- */
+.block{margin:0 0 22px}
+.blockhead{
+  display:flex;align-items:center;gap:9px;margin:0 0 10px;
+}
+.blockhead h3{
+  font-family:var(--display);font-size:12px;letter-spacing:.06em;margin:0;
+  color:var(--cream);white-space:nowrap
+}
+.blockhead .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--magenta),transparent)}
+.blockhead .tag{
+  font-family:var(--data);font-size:9px;letter-spacing:.16em;color:var(--void);
+  background:var(--cyan);padding:2px 7px;border-radius:2px;text-transform:uppercase
+}
+
+/* lista simple (calentamiento) */
+.plain{list-style:none;margin:0;padding:0;border-left:2px dashed rgba(255,201,60,.35)}
+.plain li{
+  padding:5px 0 5px 14px;font-size:14.5px;color:var(--cream);position:relative
+}
+.plain li::before{
+  content:'';position:absolute;left:-5px;top:14px;width:8px;height:8px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 8px rgba(255,201,60,.8)
+}
+.approach{
+  font-family:var(--data);font-size:12.5px;color:var(--cyan);
+  background:rgba(34,232,245,.07);border:1px solid rgba(34,232,245,.28);
+  padding:10px 12px;border-radius:6px;letter-spacing:.02em
+}
+
+/* ---------- tarjeta de ejercicio ---------- */
+.ex{
+  background:linear-gradient(160deg,var(--void2),var(--void3));
+  border:1px solid rgba(255,46,136,.30);
+  border-radius:10px;padding:13px 13px 11px;margin:0 0 10px;
+  box-shadow:0 3px 0 rgba(0,0,0,.4)
+}
+.ex.skill{border-color:rgba(255,201,60,.5);background:linear-gradient(160deg,#2A1633,#3A1D3D)}
+.ex-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ex-name{font-weight:700;font-size:15.5px;margin:0;line-height:1.25}
+.ex-rx{font-family:var(--data);font-size:11.5px;color:var(--cyan);margin:4px 0 0;letter-spacing:.01em}
+.ex-note{font-size:12px;color:var(--dim);margin:5px 0 0;font-style:italic}
+
+/* bombillas de series */
+.sets{display:flex;gap:7px;margin:11px 0 0;flex-wrap:wrap}
+.bulb{
+  width:34px;height:34px;border-radius:50%;cursor:pointer;
+  border:2px solid rgba(255,201,60,.4);
+  background:rgba(255,255,255,.04);
+  color:var(--dim);font-family:var(--data);font-size:12px;font-weight:700;
+  display:grid;place-items:center;transition:all .14s ease;padding:0
+}
+.bulb[aria-pressed="true"]{
+  background:var(--gold);border-color:var(--gold);color:var(--void);
+  box-shadow:0 0 14px rgba(255,201,60,.85);transform:scale(1.06)
+}
+.bulb:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+
+/* registro */
+.logrow{display:flex;align-items:center;gap:8px;margin:11px 0 0}
+.logrow label{
+  font-family:var(--data);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--magenta);white-space:nowrap
+}
+.logrow input{
+  flex:1;min-width:0;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.16);
+  border-radius:5px;color:var(--cream);font-family:var(--data);font-size:13.5px;
+  padding:7px 9px
+}
+.logrow input::placeholder{color:rgba(155,134,184,.6)}
+.logrow input:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 2px rgba(34,232,245,.22)}
+
+.restbtn{
+  border:1px solid rgba(34,232,245,.45);background:rgba(34,232,245,.09);color:var(--cyan);
+  font-family:var(--data);font-size:10.5px;letter-spacing:.1em;padding:7px 10px;border-radius:5px;
+  cursor:pointer;white-space:nowrap
+}
+.restbtn:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+
+/* ---------- notas al pie ---------- */
+.foot{margin:34px 0 10px}
+.foot h3{font-family:var(--display);font-size:13px;color:var(--gold);margin:0 0 10px}
+.foot ul{margin:0;padding-left:18px}
+.foot li{font-size:13.5px;margin:0 0 7px;color:#E4D8F0}
+.warn{
+  border:1px solid var(--magenta);border-radius:8px;padding:12px 13px;margin:16px 0 0;
+  background:rgba(255,46,136,.10)
+}
+.warn strong{font-family:var(--display);font-size:11px;color:var(--magenta);display:block;margin-bottom:6px;letter-spacing:.04em}
+.warn p{margin:0;font-size:13.5px;color:#F0E2FA}
+
+.reset{
+  display:block;width:100%;margin:18px 0 8px;padding:11px;
+  background:transparent;border:1px dashed rgba(255,255,255,.25);border-radius:7px;
+  color:var(--dim);font-family:var(--data);font-size:11px;letter-spacing:.14em;cursor:pointer
+}
+.reset:hover{border-color:var(--magenta);color:var(--magenta)}
+
+/* ---------- dock del timer ---------- */
+.dock{
+  position:fixed;left:0;right:0;bottom:0;z-index:20;
+  background:linear-gradient(180deg,rgba(21,10,36,.86),var(--void) 42%);
+  backdrop-filter:blur(12px);
+  border-top:2px solid var(--magenta);
+  padding:9px 14px calc(10px + env(safe-area-inset-bottom));
+}
+.dockin{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:13px}
+.ring{width:66px;height:66px;flex:none;position:relative}
+.ring svg{width:100%;height:100%;display:block}
+.ring .time{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--data);font-weight:700;font-size:15px;color:var(--gold);
+  text-shadow:0 0 12px rgba(255,201,60,.7)
+}
+.presets{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+.preset{
+  flex:1 1 0;min-width:60px;border:1px solid rgba(255,201,60,.4);background:rgba(255,201,60,.07);
+  color:var(--gold);font-family:var(--data);font-size:11px;padding:9px 4px;border-radius:6px;cursor:pointer;
+  letter-spacing:.04em
+}
+.preset:active{background:var(--gold);color:var(--void)}
+.preset:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.preset.stop{border-color:var(--magenta);background:rgba(255,46,136,.12);color:var(--magenta)}
+.docklabel{
+  font-family:var(--data);font-size:9px;letter-spacing:.2em;color:var(--dim);
+  text-transform:uppercase;margin:0 0 6px
+}
+.saved{
+  position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:40;
+  background:var(--gold);color:var(--void);font-family:var(--data);font-size:11px;
+  padding:6px 14px;border-radius:20px;letter-spacing:.1em;
+  opacity:0;pointer-events:none;transition:opacity .25s
+}
+.saved.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="saved" id="saved">GUARDADO</div>
+
+<div class="wrap">
+  <div class="bulbrail"></div>
+  <header>
+    <p class="eyebrow">Función de tres actos</p>
+    <h1>RUTINA</h1>
+    <p class="tagline">fuerza relativa + hipertrofia · frecuencia 2x por grupo</p>
+  </header>
+  <div class="bulbrail"></div>
+
+  <nav class="stubs" role="tablist" aria-label="Días de entrenamiento">
+    <button class="stub" role="tab" aria-selected="true" data-day="0"><span class="n">ACTO I</span>Empuje</button>
+    <button class="stub" role="tab" aria-selected="false" data-day="1"><span class="n">ACTO II</span>Tirón</button>
+    <button class="stub" role="tab" aria-selected="false" data-day="2"><span class="n">ACTO III</span>Skills</button>
+  </nav>
+
+  <main id="app"></main>
+
+  <button class="reset" id="reset">✕ BORRAR SERIES MARCADAS DEL DÍA</button>
+
+  <div class="foot">
+    <h3>Progresión de carga</h3>
+    <ul>
+      <li><strong>Doble progresión:</strong> llegás al tope del rango en la primera serie → subís peso la próxima sesión y volvés al piso del rango.</li>
+      <li>Ejemplo con fondos (rango 4-6): hacés 6 → +2,5 kg y volvés a buscar 4.</li>
+      <li>En las series 2 y 3 del RPT ajustás el -10% / -20% sobre el peso nuevo.</li>
+      <li><strong>Estáticas:</strong> anotá los segundos por serie. Subís de progresión cuando sostenés el tope del rango con forma limpia durante 2-3 semanas.</li>
+      <li>La habilidad del Acto III rota cada 6-8 semanas: bandera humana → muscle-up. Handstand y front lever no rotan.</li>
+    </ul>
+    <div class="warn">
+      <strong>▲ Pendiente: lumbar</strong>
+      <p>Sin extensión de cadera cargada (peso muerto, hip thrust, pull-through, hiperextensión) hasta la evaluación profesional. El bloque de activación va en los tres calentamientos y también los días libres. Si aparece hormigueo o algo que baje por la pierna, cortás ahí.</p>
+    </div>
+  </div>
+</div>
+
+<div class="dock">
+  <div class="dockin">
+    <div class="ring">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><g id="bulbs"></g></svg>
+      <div class="time" id="time">--</div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <p class="docklabel">Descanso</p>
+      <div class="presets">
+        <button class="preset" data-sec="60">1:00</button>
+        <button class="preset" data-sec="90">1:30</button>
+        <button class="preset" data-sec="150">2:30</button>
+        <button class="preset" data-sec="180">3:00</button>
+        <button class="preset stop" id="stop">STOP</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAYS = [
+  {
+    title:"Acto I — Empuje énfasis + Cuádriceps",
+    sub:"pecho · hombro · tríceps · cuádriceps",
+    blocks:[
+      {name:"Calentamiento", tag:"previo", list:[
+        "Bici — 3 min",
+        "Movilidad de hombros y cadera",
+        "Plancha 30 seg · Plancha lateral 15 seg",
+        "Estocadas 12 · Flexiones 8",
+        "Rotación externa con banda — 2 × 15",
+        "Puente de glúteo — 2 × 12-15, apretando el glúteo antes de subir",
+        "Bird-dog — 2 × 8-10 por lado",
+        "Deadbug — 2 × 8-10 por lado"
+      ]},
+      {name:"Series de aproximación", approach:"Barra sola 8 repes → 60% 5-6 repes → 80% 2-3 repes"},
+      {name:"Bloque estático", tag:"skill", ex:[
+        {id:"d1-hs", n:"Handstand contra la pared", rx:"8-10 min · series con descanso entre intentos", sets:5, unit:"seg", skill:true, note:"Alineación y empujar el piso con las manos."}
+      ]},
+      {name:"Bloque de fuerza", tag:"RPT", ex:[
+        {id:"d1-fondos", n:"Fondos en paralelas", rx:"3 series | 4-6 / 6-8 (-10%) / 8-10 (-20%)", sets:3, unit:"kg", def:"20", rest:180, note:"No bajes de 90° de flexión de codo si sentís pinzamiento."},
+        {id:"d1-sent", n:"Sentadilla con barra", rx:"3 series | 6-8 / 8-10 (-10%) / 10-12 (-20%)", sets:3, unit:"kg", rest:180}
+      ]},
+      {name:"Bloque de hipertrofia", ex:[
+        {id:"d1-press", n:"Press inclinado con mancuernas", rx:"3 series | 8-12 repes", sets:3, unit:"kg", def:"16", rest:90},
+        {id:"d1-cuad", n:"Extensión de cuádriceps", rx:"3 series | 10-12 repes", sets:3, unit:"kg", rest:90},
+        {id:"d1-apert", n:"Apertura con mancuernas o polea", rx:"3 series | 12-15 repes", sets:3, unit:"kg", rest:90, note:"Codos fijos, sin bajar más allá de la línea del pecho."},
+        {id:"d1-super", n:"Superserie: elevaciones laterales + extensión de tríceps", rx:"3 series | 12-15 repes cada una", sets:3, unit:"kg", rest:90},
+        {id:"d1-rueda", n:"Rueda abdominal", rx:"3 series | 8-10 repes", sets:3, unit:"nota", note:"Cortá la rep si se arquea la lumbar."}
+      ]}
+    ]
+  },
+  {
+    title:"Acto II — Tirón énfasis + Cadena posterior",
+    sub:"espalda · bíceps · isquios",
+    blocks:[
+      {name:"Calentamiento", tag:"previo", list:[
+        "Bici — 3 min",
+        "Movilidad de hombros y cadera",
+        "Colgarse en barra — 30 seg",
+        "Remo con banda — 15 repes",
+        "Puente de glúteo — 2 × 12-15, apretando el glúteo antes de subir",
+        "Bird-dog — 2 × 8-10 por lado",
+        "Deadbug — 2 × 8-10 por lado"
+      ]},
+      {name:"Series de aproximación", approach:"Misma lógica que el Acto I, aplicada a dominadas."},
+      {name:"Bloque estático", tag:"skill", ex:[
+        {id:"d2-fl", n:"Front lever — advanced tuck, sin banda", rx:"5 series | 8-12 seg de sostén · descanso 60-90 seg", sets:5, unit:"seg", skill:true, rest:90, note:"Que no se abra la cadera para ganar ángulo."}
+      ]},
+      {name:"Bloque de fuerza", tag:"RPT", ex:[
+        {id:"d2-dom", n:"Dominadas lastradas", rx:"3 series | 4-6 / 6-8 (-10%) / 8-10 (-20%)", sets:3, unit:"kg", def:"5", rest:180},
+        {id:"d2-remo", n:"Remo a un brazo con mancuerna", rx:"3 series | 8-12 repes", sets:3, unit:"kg", def:"18", rest:90},
+        {id:"d2-nord", n:"Curl nórdico asistido", rx:"3 series | 5-8 repes", sets:3, unit:"nota", note:"Flexión de rodilla, no bisagra de cadera. Si tira o hormiguea, sacalo."}
+      ]},
+      {name:"Bloque de hipertrofia", ex:[
+        {id:"d2-super", n:"Superserie: face pull + curl de bíceps", rx:"3 series | 12-15 repes cada una", sets:3, unit:"kg", rest:90},
+        {id:"d2-gemelo", n:"Elevación de talones de pie", rx:"3 series | 15-20 repes", sets:3, unit:"kg", rest:60},
+        {id:"d2-lat", n:"Elevaciones laterales", rx:"3 series | 8-12 repes", sets:3, unit:"kg", rest:60},
+        {id:"d2-plancha", n:"Plancha avanzada o con peso", rx:"3 series | 20-40 seg", sets:3, unit:"seg", rest:60}
+      ]}
+    ]
+  },
+  {
+    title:"Acto III — Full Body + Skills",
+    sub:"segunda dosis de cada patrón · habilidad principal",
+    blocks:[
+      {name:"Calentamiento", tag:"previo", list:[
+        "Bici — 3 min",
+        "Movilidad de hombros, cadera y tobillo",
+        "Rotación externa con banda — 2 × 15 (clave antes de bandera)",
+        "Puente de glúteo — 2 × 12-15, apretando el glúteo antes de subir",
+        "Bird-dog — 2 × 8-10 por lado",
+        "Deadbug — 2 × 8-10 por lado"
+      ]},
+      {name:"Número principal", tag:"skill", ex:[
+        {id:"d3-flag", n:"Bandera humana", rx:"10-12 min de intentos · descanso 90 seg entre sets", sets:6, unit:"seg", skill:true, rest:90,
+         note:"Escala: chamber hold → tuck → one-leg → straddle → full. Subís al sostener 8-10 seg limpio 2-3 semanas. Pinchazo en el hombro de abajo = cortás el set."}
+      ]},
+      {name:"Bloque de fuerza", ex:[
+        {id:"d3-pseudo", n:"Flexiones pseudo planche", rx:"3 series | 6-8 repes", sets:3, unit:"nota", note:"Anotá dónde quedaron las manos respecto a la cadera y si los pies iban elevados."},
+        {id:"d3-remoinv", n:"Remo invertido", rx:"3 series | 8-12 repes · lastrado si podés", sets:3, unit:"kg", rest:90},
+        {id:"d3-domneutra", n:"Dominadas neutras o jalón al pecho", rx:"3 series | 8-12 repes", sets:3, unit:"kg", rest:90, note:"Submáximo: dejá 2-3 reps en reserva."},
+        {id:"d3-step", n:"Step-up con mancuernas o búlgara", rx:"3 series | 8-10 repes por pierna", sets:3, unit:"kg", rest:90},
+        {id:"d3-isquio", n:"Isquios en máquina", rx:"3 series | 10-12 repes", sets:3, unit:"kg", rest:90}
+      ]},
+      {name:"Accesorios y core", ex:[
+        {id:"d3-lat", n:"Elevaciones laterales", rx:"3 series | 12-15 repes", sets:3, unit:"kg", rest:60},
+        {id:"d3-martillo", n:"Curl martillo", rx:"3 series | 10-12 repes", sets:3, unit:"kg", rest:60},
+        {id:"d3-soleo", n:"Elevación de talones sentado", rx:"3 series | 15-20 repes", sets:3, unit:"kg", rest:60},
+        {id:"d3-dragon", n:"Dragon flag o L-sit", rx:"3 series | 10-20 seg", sets:3, unit:"seg", rest:60}
+      ]}
+    ]
+  }
+];
+
+const KEY = 'rutina-circo-v1';
+let state = { day:0, sets:{}, logs:{} };
+const app = document.getElementById('app');
+const savedChip = document.getElementById('saved');
+
+/* ---------- persistencia ---------- */
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){ state = Object.assign(state, JSON.parse(raw)); }
+  }catch(e){ /* primera vez, o almacenamiento no disponible */ }
+  DAYS.forEach(d=>d.blocks.forEach(b=>(b.ex||[]).forEach(x=>{
+    if(x.def && state.logs[x.id]===undefined) state.logs[x.id]=x.def;
+  })));
+  render();
+}
+let saveTimer=null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{
+      localStorage.setItem(KEY, JSON.stringify(state));
+      savedChip.textContent='GUARDADO';
+      savedChip.classList.add('on');
+      setTimeout(()=>savedChip.classList.remove('on'),900);
+    }catch(e){
+      savedChip.textContent='NO SE PUDO GUARDAR';
+      savedChip.classList.add('on');
+      setTimeout(()=>savedChip.classList.remove('on'),2000);
+    }
+  },350);
+}
+
+/* ---------- render ---------- */
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function render(){
+  const d = DAYS[state.day];
+  let h = `<h2 class="daytitle">${esc(d.title)}</h2><p class="daysub">${esc(d.sub)}</p>`;
+  d.blocks.forEach(b=>{
+    h += `<section class="block"><div class="blockhead"><h3>${esc(b.name)}</h3>`;
+    h += `<span class="rule"></span>`;
+    if(b.tag) h += `<span class="tag">${esc(b.tag)}</span>`;
+    h += `</div>`;
+    if(b.list){
+      h += `<ul class="plain">${b.list.map(i=>`<li>${esc(i)}</li>`).join('')}</ul>`;
+    }
+    if(b.approach){ h += `<p class="approach">${esc(b.approach)}</p>`; }
+    (b.ex||[]).forEach(x=>{
+      const done = state.sets[x.id]||[];
+      h += `<article class="ex${x.skill?' skill':''}">
+        <div class="ex-top"><div style="min-width:0">
+          <p class="ex-name">${esc(x.n)}</p>
+          <p class="ex-rx">${esc(x.rx)}</p>
+        </div></div>`;
+      if(x.note) h += `<p class="ex-note">${esc(x.note)}</p>`;
+      h += `<div class="sets">`;
+      for(let i=0;i<x.sets;i++){
+        h += `<button class="bulb" data-ex="${x.id}" data-i="${i}" aria-pressed="${done.includes(i)?'true':'false'}" aria-label="Serie ${i+1}">${i+1}</button>`;
+      }
+      h += `</div><div class="logrow">
+        <label for="in-${x.id}">${x.unit==='nota'?'nota':x.unit}</label>
+        <input id="in-${x.id}" data-log="${x.id}" value="${esc(state.logs[x.id]||'')}" placeholder="${x.unit==='seg'?'seg por serie':(x.unit==='nota'?'cómo salió':'peso')}">`;
+      if(x.rest) h += `<button class="restbtn" data-rest="${x.rest}">⏱ ${Math.floor(x.rest/60)}:${String(x.rest%60).padStart(2,'0')}</button>`;
+      h += `</div></article>`;
+    });
+    h += `</section>`;
+  });
+  app.innerHTML = h;
+}
+
+/* ---------- interacción ---------- */
+document.querySelectorAll('.stub').forEach(b=>{
+  b.addEventListener('click',()=>{
+    state.day = +b.dataset.day;
+    document.querySelectorAll('.stub').forEach(o=>o.setAttribute('aria-selected', o===b?'true':'false'));
+    render(); save(); window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+app.addEventListener('click',e=>{
+  const bulb = e.target.closest('.bulb');
+  if(bulb){
+    const id = bulb.dataset.ex, i = +bulb.dataset.i;
+    state.sets[id] = state.sets[id]||[];
+    const at = state.sets[id].indexOf(i);
+    if(at>-1){ state.sets[id].splice(at,1); bulb.setAttribute('aria-pressed','false'); }
+    else { state.sets[id].push(i); bulb.setAttribute('aria-pressed','true'); }
+    save(); return;
+  }
+  const rest = e.target.closest('[data-rest]');
+  if(rest){ startTimer(+rest.dataset.rest); }
+});
+
+app.addEventListener('input',e=>{
+  const inp = e.target.closest('[data-log]');
+  if(inp){ state.logs[inp.dataset.log] = inp.value; save(); }
+});
+
+document.getElementById('reset').addEventListener('click',()=>{
+  const d = DAYS[state.day];
+  d.blocks.forEach(b=>(b.ex||[]).forEach(x=>{ delete state.sets[x.id]; }));
+  render(); save();
+});
+
+/* ---------- timer con anillo de bombillas ---------- */
+const N = 20, bulbsG = document.getElementById('bulbs'), timeEl = document.getElementById('time');
+for(let i=0;i<N;i++){
+  const a = (i/N)*Math.PI*2 - Math.PI/2;
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx', 50+38*Math.cos(a)); c.setAttribute('cy', 50+38*Math.sin(a));
+  c.setAttribute('r','5'); c.setAttribute('fill','rgba(255,201,60,.16)');
+  bulbsG.appendChild(c);
+}
+const bulbEls = [...bulbsG.children];
+let total=0, left=0, tick=null;
+
+function paint(){
+  const frac = total? left/total : 0;
+  const lit = Math.ceil(frac*N);
+  bulbEls.forEach((c,i)=>{
+    const on = i<lit;
+    c.setAttribute('fill', on? '#FFC93C':'rgba(255,201,60,.16)');
+    c.style.filter = on? 'drop-shadow(0 0 3px #FFC93C)':'none';
+  });
+  if(total===0){ timeEl.textContent='--'; return; }
+  const m=Math.floor(left/60), s=left%60;
+  timeEl.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  timeEl.style.color = left<=5 ? '#FF2E88' : '#FFC93C';
+}
+function startTimer(sec){
+  clearInterval(tick); total=sec; left=sec; paint();
+  tick=setInterval(()=>{
+    left--; 
+    if(left<=0){ clearInterval(tick); left=0; total=0; paint(); timeEl.textContent='¡YA!'; timeEl.style.color='#22E8F5';
+      try{ if(navigator.vibrate) navigator.vibrate([120,60,120]); }catch(e){}
+      setTimeout(paint,2500); return; }
+    paint();
+  },1000);
+}
+document.querySelectorAll('.preset[data-sec]').forEach(b=>b.addEventListener('click',()=>startTimer(+b.dataset.sec)));
+document.getElementById('stop').addEventListener('click',()=>{ clearInterval(tick); total=0; left=0; paint(); });
+
+paint();
+load();
+</script>
+</body>
+</html>
