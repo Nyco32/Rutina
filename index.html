@@ -121,6 +121,74 @@ h1{
 .stub[aria-selected="true"] .n{color:var(--void);opacity:.6}
 .stub:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
 
+/* ---------- racha ---------- */
+.streak{
+  display:flex;align-items:center;gap:12px;margin:16px 0 0;padding:10px 12px;
+  border:1px solid rgba(255,201,60,.35);border-radius:10px;
+  background:linear-gradient(120deg,rgba(255,201,60,.09),rgba(255,46,136,.06))
+}
+.streak.bump{animation:skbump .6s cubic-bezier(.2,1.5,.4,1)}
+@keyframes skbump{0%{transform:scale(1)}35%{transform:scale(1.035)}100%{transform:scale(1)}}
+.sk-num{display:flex;align-items:baseline;gap:7px;flex:1;min-width:0}
+.sk-num b{
+  font-family:var(--display);font-size:27px;line-height:1;color:var(--gold);
+  text-shadow:0 0 18px rgba(255,201,60,.6)
+}
+.sk-num b.zero{color:var(--dim);text-shadow:none}
+.sk-num span{
+  font-family:var(--data);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);line-height:1.3
+}
+.sk-week{display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex:none}
+.sk-lbl{font-family:var(--data);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.sk-acts{display:flex;gap:5px}
+.sk-acts span{
+  width:23px;height:23px;border-radius:50%;display:grid;place-items:center;--b:var(--gold);
+  font-family:var(--data);font-size:8.5px;font-weight:700;
+  border:1.5px solid var(--b);color:var(--b);opacity:.38;transition:all .25s ease
+}
+.sk-acts span:nth-child(1){--b:var(--magenta)}
+.sk-acts span:nth-child(2){--b:var(--cyan)}
+.sk-acts span:nth-child(3){--b:var(--lime)}
+.sk-acts span.on{opacity:1;background:var(--b);color:var(--void);box-shadow:0 0 12px var(--b)}
+.sk-cal{
+  flex:none;width:30px;height:30px;border-radius:7px;cursor:pointer;
+  border:1px solid rgba(155,134,184,.4);background:transparent;color:var(--dim);font-size:13px
+}
+.sk-cal[aria-expanded="true"]{border-color:var(--gold);color:var(--gold)}
+.stub.done::after{
+  content:'✓';position:absolute;top:2px;right:5px;
+  font-family:var(--data);font-size:11px;font-weight:700;color:#1C7A2B
+}
+.stub[aria-selected="true"].done::after{color:var(--void);opacity:.65}
+
+/* calendario de asistencia */
+.cal{margin:8px 0 0;padding:11px 10px 12px;border:1px dashed rgba(155,134,184,.35);border-radius:10px}
+.calhead,.calrow{display:grid;grid-template-columns:repeat(7,1fr) 18px;gap:4px}
+.calhead{margin-bottom:6px}
+.calhead span{font-family:var(--data);font-size:8.5px;letter-spacing:.08em;color:var(--dim);text-align:center}
+.calrow{margin-bottom:4px;align-items:center}
+.calday{
+  aspect-ratio:1;border-radius:5px;padding:0;cursor:pointer;
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);
+  color:var(--dim);font-family:var(--data);font-size:10px;
+  display:grid;place-items:center;transition:all .18s ease
+}
+.calday.fut{opacity:.22;cursor:default}
+.calday.hoy{border-color:var(--gold);color:var(--gold)}
+.calday.has{color:var(--void);font-weight:700;border-color:transparent}
+.calday.a0{background:var(--magenta)}
+.calday.a1{background:var(--cyan)}
+.calday.a2{background:var(--lime)}
+.calday.multi{box-shadow:inset 0 -5px 0 rgba(0,0,0,.35)}
+.calday:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.calmark{font-family:var(--data);font-size:10px;text-align:center;color:rgba(155,134,184,.5)}
+.calrow.ok .calmark{color:var(--lime)}
+.calnote{
+  font-family:var(--data);font-size:9px;line-height:1.7;letter-spacing:.05em;
+  color:var(--dim);margin:9px 0 0
+}
+
 .daytitle{
   font-family:var(--display);font-size:19px;margin:22px 0 2px;
   color:var(--accent);
@@ -509,6 +577,16 @@ h1{
   </header>
   <div class="bulbrail"></div>
 
+  <div class="streak" id="streakbox">
+    <div class="sk-num"><b id="skn">0</b><span id="sklbl">sesiones<br>seguidas</span></div>
+    <div class="sk-week">
+      <span class="sk-lbl">esta semana</span>
+      <div class="sk-acts" id="skacts"><span>I</span><span>II</span><span>III</span></div>
+    </div>
+    <button class="sk-cal" id="calbtn" aria-expanded="false" aria-controls="cal" title="Ajustar días">✎</button>
+  </div>
+  <section class="cal" id="cal" hidden></section>
+
   <nav class="stubs" role="tablist" aria-label="Días de entrenamiento">
     <button class="stub" role="tab" aria-selected="true" data-day="0"><span class="n">ACTO I</span>Empuje</button>
     <button class="stub" role="tab" aria-selected="false" data-day="1"><span class="n">ACTO II</span>Tirón</button>
@@ -657,7 +735,7 @@ const DAYS = [
 ];
 
 const KEY = 'rutina-circo-v1';
-let state = { day:0, sets:{}, logs:{} };
+let state = { day:0, sets:{}, logs:{}, hist:{} };
 const app = document.getElementById('app');
 const savedChip = document.getElementById('saved');
 
@@ -670,15 +748,19 @@ function load(){
   DAYS.forEach(d=>d.blocks.forEach(b=>(b.ex||[]).forEach(x=>{
     if(x.def && state.logs[x.id]===undefined) state.logs[x.id]=x.def;
   })));
+  if(!state.hist) state.hist = {};   // datos guardados antes de que existiera la racha
   render();
+  renderStreak();
 }
-let saveTimer=null;
+let saveTimer=null, flashMsg=null;
+function flash(m){ flashMsg = m; }
 function save(){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
     try{
       localStorage.setItem(KEY, JSON.stringify(state));
-      savedChip.textContent='GUARDADO';
+      savedChip.textContent = flashMsg || 'GUARDADO';
+      flashMsg = null;
       savedChip.classList.add('on');
       setTimeout(()=>savedChip.classList.remove('on'),900);
     }catch(e){
@@ -998,6 +1080,134 @@ if(window.ResizeObserver) new ResizeObserver(restrand).observe(app);
 window.addEventListener('resize', restrand);
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(restrand);
 
+/* ---------- racha ---------- */
+/* Una sesión queda registrada cuando cerraste MIN_EX ejercicios completos del
+   día: marcar una serie suelta mostrándole la rutina a alguien no alcanza.
+   La racha cuenta sesiones. Al cerrar cada semana (lunes a domingo) tienen que
+   estar los tres actos; si falta uno, vuelve a cero. La semana en curso nunca
+   rompe nada, y la primera semana de todas está perdonada (podés arrancar un
+   jueves sin que se caiga sola). */
+const MIN_EX = 3;
+const skn = document.getElementById('skn'), sklbl = document.getElementById('sklbl');
+const skacts = document.getElementById('skacts'), streakbox = document.getElementById('streakbox');
+const cal = document.getElementById('cal'), calbtn = document.getElementById('calbtn');
+const CAL_WEEKS = 8;
+
+const pad2 = n=>String(n).padStart(2,'0');
+function dkey(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function weekStart(d){                       // lunes de esa semana
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay()+6)%7));
+  return x;
+}
+function histDates(){
+  return Object.keys(state.hist).filter(k=>(state.hist[k]||[]).length).sort();
+}
+
+function computeStreak(){
+  const dates = histDates();
+  const curKey = dkey(weekStart(new Date()));
+  const acts = new Set(), out = {streak:0, acts:acts, week:0};
+  if(!dates.length) return out;
+  let streak = 0, first = true;
+  const w = weekStart(new Date(dates[0].slice(0,4), +dates[0].slice(5,7)-1, +dates[0].slice(8,10)));
+  while(dkey(w) <= curKey){
+    const from = dkey(w);
+    const end = new Date(w); end.setDate(end.getDate()+6);
+    const to = dkey(end);
+    const days = dates.filter(d=>d>=from && d<=to);
+    const wActs = new Set();
+    days.forEach(d=>state.hist[d].forEach(a=>wActs.add(a)));
+    if(from === curKey){                     // semana en curso: suma, nunca corta
+      streak += days.length;
+      wActs.forEach(a=>acts.add(a));
+      out.week = days.length;
+      break;
+    }
+    if(first || wActs.size >= 3) streak += days.length;   // primera semana perdonada
+    else streak = 0;
+    first = false;
+    w.setDate(w.getDate()+7);
+  }
+  out.streak = streak;
+  return out;
+}
+
+function renderStreak(){
+  const s = computeStreak();
+  skn.textContent = s.streak;
+  skn.classList.toggle('zero', s.streak===0);
+  sklbl.innerHTML = s.streak===0 ? 'sin racha<br>arrancá hoy' : (s.streak===1?'sesión<br>seguida':'sesiones<br>seguidas');
+  [...skacts.children].forEach((el,i)=>el.classList.toggle('on', s.acts.has(i)));
+  document.querySelectorAll('.stub').forEach(b=>b.classList.toggle('done', s.acts.has(+b.dataset.day)));
+  return s;
+}
+
+/* ¿ya cerré suficientes ejercicios como para que cuente la sesión de hoy? */
+function maybeLogSession(){
+  let closed = 0;
+  DAYS[state.day].blocks.forEach(b=>(b.ex||[]).forEach(x=>{
+    if((state.sets[x.id]||[]).length >= x.sets) closed++;
+  }));
+  if(closed < MIN_EX) return;
+  const k = dkey(new Date());
+  const arr = state.hist[k] || (state.hist[k] = []);
+  if(arr.includes(state.day)) return;
+  arr.push(state.day);
+  const s = renderStreak();
+  renderCal();
+  replay(streakbox,'bump');
+  flash('SESIÓN REGISTRADA · '+s.streak);
+}
+
+/* ---------- calendario de asistencia ---------- */
+function renderCal(){
+  if(cal.hidden) return;
+  const now = new Date(), hoy = dkey(now);
+  const d = weekStart(now);
+  d.setDate(d.getDate() - 7*(CAL_WEEKS-1));
+  let h = '<div class="calhead">'+['L','M','M','J','V','S','D'].map(x=>`<span>${x}</span>`).join('')+'<span></span></div>';
+  for(let w=0; w<CAL_WEEKS; w++){
+    const wActs = new Set();
+    let row = '';
+    for(let i=0;i<7;i++){
+      const k = dkey(d), list = state.hist[k]||[];
+      list.forEach(a=>wActs.add(a));
+      const fut = d > now;
+      const cls = ['calday'];
+      if(list.length) cls.push('has','a'+list[0]);
+      if(list.length>1) cls.push('multi');
+      if(fut) cls.push('fut');
+      if(k===hoy) cls.push('hoy');
+      row += `<button class="${cls.join(' ')}" data-dk="${k}"${fut?' disabled':''} aria-label="${k}">${d.getDate()}</button>`;
+      d.setDate(d.getDate()+1);
+    }
+    const ok = wActs.size>=3;
+    h += `<div class="calrow${ok?' ok':''}">${row}<span class="calmark">${ok?'✓':(wActs.size||'')}</span></div>`;
+  }
+  h += `<p class="calnote">Tocá un día para cambiarlo: vacío → <b style="color:var(--magenta)">I empuje</b> → <b style="color:var(--cyan)">II tirón</b> → <b style="color:var(--lime)">III skills</b> → vacío.<br>El ✓ de la derecha es la semana con los tres actos hechos.</p>`;
+  cal.innerHTML = h;
+}
+
+calbtn.addEventListener('click',()=>{
+  const abrir = cal.hidden;
+  cal.hidden = !abrir;
+  calbtn.setAttribute('aria-expanded', abrir?'true':'false');
+  if(abrir) renderCal();
+});
+
+cal.addEventListener('click',e=>{
+  const b = e.target.closest('[data-dk]');
+  if(!b || b.disabled) return;
+  const k = b.dataset.dk, prev = state.hist[k]||[];
+  let next;
+  if(prev.length===0) next=[0];
+  else if(prev.length===1 && prev[0]<2) next=[prev[0]+1];
+  else next=[];                              // acto III o día con varios: se vacía
+  if(next.length) state.hist[k]=next; else delete state.hist[k];
+  renderCal(); renderStreak(); save();
+});
+
 /* ---------- confeti de cierre ---------- */
 const CONF = ['#FFC93C','#FF2E88','#22E8F5','#A8FF3E','#C08BFF','#FF8A3D'];
 function confetti(){
@@ -1074,6 +1284,7 @@ app.addEventListener('click',e=>{
       if(autoRest && x && x.rest && !done){
         startTimer(x.rest);
       }
+      maybeLogSession();
     }
     updateStrand();
     // si con esto se cerró el día entero, cae el confeti
