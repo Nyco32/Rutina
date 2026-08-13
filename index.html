@@ -151,7 +151,7 @@ h1{
 /* ---------- bloques ---------- */
 .block{margin:0 0 22px}
 .blockhead{
-  display:flex;align-items:center;gap:9px;margin:0 0 34px;
+  display:flex;align-items:center;gap:9px;margin:0 0 38px;
 }
 .blockhead h3{
   font-family:var(--display);font-size:12px;letter-spacing:.06em;margin:0;
@@ -195,7 +195,7 @@ h1{
   border:1px solid rgba(255,46,136,.30);
   border-color:color-mix(in srgb, var(--accent) 32%, transparent);
   border-left:3px solid var(--accent);
-  border-radius:10px;padding:13px 13px 11px;margin:0 0 30px;
+  border-radius:10px;padding:13px 13px 11px;margin:0 0 33px;
   box-shadow:0 3px 0 rgba(0,0,0,.4)
 }
 .ex.skill{
@@ -858,7 +858,7 @@ function render(){
      con una bombilla por serie de ese ejercicio. */
 const SVGNS = 'http://www.w3.org/2000/svg';
 const CORD_COLORS = ['#FFC93C','#FF2E88','#22E8F5','#A8FF3E','#C08BFF','#FF8A3D'];
-const HANG = 26;        // a qué altura sobre la tarjeta se ata la guirnalda
+const HANG = 29;        // a qué altura sobre la tarjeta se ata la guirnalda
 const SAG_MIN = 4, SAG_MAX = 9;   // cuánta panza hace el cable entre clavo y clavo
 const pcount = document.getElementById('pcount');
 let strandBack = null, strandEl = null, strandBulbs = [];
@@ -888,14 +888,16 @@ function makeBulb(x, y, ang, col, idx){
 
   const cap = document.createElementNS(SVGNS,'rect');
   cap.setAttribute('class','socket');
-  cap.setAttribute('x','-2.9'); cap.setAttribute('y','0');
-  cap.setAttribute('width','5.8'); cap.setAttribute('height','6');
-  cap.setAttribute('rx','1.6');
+  cap.setAttribute('x','-2.6'); cap.setAttribute('y','0');
+  cap.setAttribute('width','5.2'); cap.setAttribute('height','4.6');
+  cap.setAttribute('rx','1.3');
   g.appendChild(cap);
 
+  // cuello angosto que se abre a la panza y termina en punta redondeada:
+  // 11 de ancho por 17 de alto. Si el ancho se acerca al alto, parece un círculo.
   const glass = document.createElementNS(SVGNS,'path');
   glass.setAttribute('class','glass');
-  glass.setAttribute('d','M 0 5 C -5 5 -7 8.6 -7 12 C -7 16 -3.6 18.8 0 18.8 C 3.6 18.8 7 16 7 12 C 7 8.6 5 5 0 5 Z');
+  glass.setAttribute('d','M -2 3.6 C -4.7 6.8 -5.5 9.8 -5.5 13.2 C -5.5 17.4 -3.1 20.5 0 20.7 C 3.1 20.5 5.5 17.4 5.5 13.2 C 5.5 9.8 4.7 6.8 2 3.6 Z');
   glass.setAttribute('fill',col);
   glass.setAttribute('data-b',idx);
   glass.style.setProperty('--b',col);
@@ -904,9 +906,9 @@ function makeBulb(x, y, ang, col, idx){
 
   const sheen = document.createElementNS(SVGNS,'ellipse');
   sheen.setAttribute('class','sheen');
-  sheen.setAttribute('cx','-2.4'); sheen.setAttribute('cy','10.4');
-  sheen.setAttribute('rx','1.5'); sheen.setAttribute('ry','2.7');
-  sheen.setAttribute('transform','rotate(-22 -2.4 10.4)');
+  sheen.setAttribute('cx','-1.9'); sheen.setAttribute('cy','11.4');
+  sheen.setAttribute('rx','1.1'); sheen.setAttribute('ry','2.9');
+  sheen.setAttribute('transform','rotate(-16 -1.9 11.4)');
   g.appendChild(sheen);
 
   return g;
