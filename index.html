@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rutina — Circo Digital</title>
-<meta name="theme-color" content="#150A24">
+<meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rutina">
 <meta name="description" content="Rutina de gimnasio de 3 días con registro de series, pesos y timer de descanso.">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23150A24'/%3E%3Cg fill='none' stroke='%23FFC93C' stroke-width='26' stroke-linecap='round'%3E%3Cpath d='M120 200v112M392 200v112M78 226v60M434 226v60'/%3E%3Cpath d='M120 256h272' stroke='%23FF2E88'/%3E%3C/g%3E%3Ccircle cx='256' cy='256' r='30' fill='%2322E8F5'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23000000'/%3E%3Cg fill='none' stroke='%23FFC93C' stroke-width='26' stroke-linecap='round'%3E%3Cpath d='M120 200v112M392 200v112M78 226v60M434 226v60'/%3E%3Cpath d='M120 256h272' stroke='%23FF2E88'/%3E%3C/g%3E%3Ccircle cx='256' cy='256' r='30' fill='%2322E8F5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --void:#150A24;
+  --void:#000000;
   --void2:#1F0F33;
   --void3:#2A1745;
   --magenta:#FF2E88;
@@ -47,23 +47,6 @@ body{
   line-height:1.5;
   padding-bottom:132px;
   overflow-x:hidden;
-}
-/* carpa: rayas radiales muy tenues desde arriba */
-body::before{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:
-    radial-gradient(ellipse 120% 70% at 50% -10%, rgba(255,46,136,.20), transparent 60%),
-    radial-gradient(ellipse 80% 50% at 0% 105%, rgba(34,232,245,.16), transparent 65%),
-    radial-gradient(ellipse 80% 50% at 100% 105%, rgba(168,255,62,.12), transparent 65%),
-    radial-gradient(ellipse 60% 40% at 50% 45%, rgba(192,139,255,.10), transparent 70%),
-    repeating-conic-gradient(from 0deg at 50% -20%,
-      rgba(255,255,255,.030) 0deg 4deg, transparent 4deg 8deg);
-}
-/* scanlines CRT */
-body::after{
-  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
-  background:repeating-linear-gradient(to bottom, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
-  opacity:.5;mix-blend-mode:multiply;
 }
 .wrap{position:relative;z-index:2;max-width:720px;margin:0 auto;padding:0 14px}
 
@@ -314,7 +297,7 @@ h1{
 /* ---------- dock del timer ---------- */
 .dock{
   position:fixed;left:0;right:0;bottom:0;z-index:20;
-  background:linear-gradient(180deg,rgba(21,10,36,.86),var(--void) 42%);
+  background:linear-gradient(180deg,rgba(0,0,0,.86),var(--void) 42%);
   backdrop-filter:blur(12px);
   border-top:2px solid var(--magenta);
   border-image:linear-gradient(90deg,var(--gold),var(--magenta) 35%,var(--violet) 65%,var(--cyan)) 1;
@@ -365,14 +348,6 @@ h1{
 .saved.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ---------- función en movimiento ---------- */
-/* reflector que barre la carpa */
-.spot{
-  position:fixed;inset:-30% -50% auto;height:130%;z-index:0;pointer-events:none;
-  background:conic-gradient(from -10deg at 50% 0%,
-    transparent 0 6deg, rgba(255,201,60,.09) 8deg 15deg, transparent 17deg);
-  transform-origin:50% 0;mix-blend-mode:screen
-}
-
 /* entrada de cada bloque al cambiar de acto */
 .block{animation:onstage .42s cubic-bezier(.2,.85,.25,1) both;animation-delay:calc(var(--i,0)*70ms)}
 @keyframes onstage{
@@ -507,8 +482,6 @@ h1{
   @keyframes twinkle{0%,100%{opacity:1}50%{opacity:.58}}
   .curtain i:first-child{animation:openL 1.05s cubic-bezier(.65,0,.3,1) .35s forwards}
   .curtain i:last-child{animation:openR 1.05s cubic-bezier(.65,0,.3,1) .35s forwards}
-  .spot{animation:sweep 19s ease-in-out infinite alternate}
-  @keyframes sweep{from{transform:rotate(-15deg)}to{transform:rotate(15deg)}}
   .daytitle{animation:onstage .4s cubic-bezier(.2,.85,.25,1) both, shimmer 7s linear 1s infinite}
   @keyframes shimmer{from{background-position:0 0}to{background-position:250% 0}}
   .bulbrail{animation:chase 1.4s steps(3) infinite, flicker 6.1s linear infinite}
@@ -524,7 +497,6 @@ h1{
 </head>
 <body>
 <div class="curtain" id="curtain" aria-hidden="true"><i></i><i></i></div>
-<div class="spot" aria-hidden="true"></div>
 <div class="saved" id="saved">GUARDADO</div>
 <div class="curtaincall" id="curtaincall" aria-hidden="true">¡FUNCIÓN<br>COMPLETA!</div>
 
@@ -1204,7 +1176,7 @@ autoBtn.addEventListener('click',()=>{
 
 /* ---------- manifest embebido (para que se instale como app) ---------- */
 (function(){
-  const icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23150A24'/%3E%3Cg fill='none' stroke='%23FFC93C' stroke-width='26' stroke-linecap='round'%3E%3Cpath d='M120 200v112M392 200v112M78 226v60M434 226v60'/%3E%3Cpath d='M120 256h272' stroke='%23FF2E88'/%3E%3C/g%3E%3Ccircle cx='256' cy='256' r='30' fill='%2322E8F5'/%3E%3C/svg%3E";
+  const icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23000000'/%3E%3Cg fill='none' stroke='%23FFC93C' stroke-width='26' stroke-linecap='round'%3E%3Cpath d='M120 200v112M392 200v112M78 226v60M434 226v60'/%3E%3Cpath d='M120 256h272' stroke='%23FF2E88'/%3E%3C/g%3E%3Ccircle cx='256' cy='256' r='30' fill='%2322E8F5'/%3E%3C/svg%3E";
   const manifest = {
     name: "Rutina — Circo Digital",
     short_name: "Rutina",
@@ -1212,8 +1184,8 @@ autoBtn.addEventListener('click',()=>{
     scope: ".",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#150A24",
-    theme_color: "#150A24",
+    background_color: "#000000",
+    theme_color: "#000000",
     icons: [
       { src: icon, sizes: "192x192", type: "image/svg+xml", purpose: "any" },
       { src: icon, sizes: "512x512", type: "image/svg+xml", purpose: "any" },
