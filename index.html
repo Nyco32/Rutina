@@ -749,9 +749,21 @@ function load(){
     if(x.def && state.logs[x.id]===undefined) state.logs[x.id]=x.def;
   })));
   if(!state.hist) state.hist = {};   // datos guardados antes de que existiera la racha
+  const limpio = autoClearSets();
   render();
   renderStreak();
+  if(limpio){ flash('DÍA NUEVO · SERIES EN CERO'); save(); }
 }
+
+/* volver a la app días después también las limpia, sin recargar */
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState !== 'visible') return;
+  if(autoClearSets()){
+    render();
+    flash('DÍA NUEVO · SERIES EN CERO');
+    save();
+  }
+});
 let saveTimer=null, flashMsg=null;
 function flash(m){ flashMsg = m; }
 function save(){
@@ -769,6 +781,25 @@ function save(){
       setTimeout(()=>savedChip.classList.remove('on'),2000);
     }
   },350);
+}
+
+/* ---------- limpieza automática de las series marcadas ----------
+   Las tildes de series son de la sesión del día: al abrir la app otro día
+   arrancan en cero solas. La excepción es entrenar cruzando la medianoche:
+   si marcaste hace menos de FRESH_MS, sigue siendo la misma sesión aunque
+   ya haya cambiado la fecha. */
+const FRESH_MS = 6*60*60*1000;
+function touchSession(){
+  state.markedOn = dkey(new Date());
+  state.markedAt = Date.now();
+}
+function autoClearSets(){
+  if(!state.markedOn || state.markedOn === dkey(new Date())) return false;
+  if(Date.now() - (state.markedAt||0) < FRESH_MS) return false;
+  state.markedOn = null; state.markedAt = 0;
+  if(!Object.keys(state.sets).length) return false;
+  state.sets = {};
+  return true;
 }
 
 /* ---------- render ---------- */
@@ -1286,6 +1317,7 @@ app.addEventListener('click',e=>{
       }
       maybeLogSession();
     }
+    touchSession();
     updateStrand();
     // si con esto se cerró el día entero, cae el confeti
     if(renderProgress() && at===-1) curtainCall();
