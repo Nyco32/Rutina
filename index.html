@@ -268,6 +268,37 @@ h1{
   background:linear-gradient(160deg,#2E1638,#3F1D42)
 }
 .ex-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+/* tres puntitos = tres bombillas: se encienden si el ejercicio tiene nota */
+.exmenu{
+  flex:none;border:0;background:transparent;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3.5px;
+  padding:7px 6px;margin:-6px -6px 0 0;border-radius:7px
+}
+.exmenu i{
+  width:4.5px;height:4.5px;border-radius:50%;background:var(--dim);opacity:.5;
+  transition:opacity .2s ease, background .2s ease, box-shadow .2s ease
+}
+.exmenu[aria-expanded="true"] i{opacity:1;background:var(--accent)}
+.exmenu.has i{opacity:1;background:var(--gold);box-shadow:0 0 6px var(--gold)}
+.exmenu.has i:nth-child(2){background:var(--magenta);box-shadow:0 0 6px var(--magenta)}
+.exmenu.has i:nth-child(3){background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.exmenu:focus-visible{outline:3px solid var(--cyan);outline-offset:1px}
+
+/* panel de notas */
+.notes{display:none;margin:11px 0 0;border-top:1px dashed rgba(255,201,60,.3);padding-top:10px}
+.notes.on{display:block;animation:noteopen .32s cubic-bezier(.2,.85,.25,1)}
+@keyframes noteopen{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+.notes .nlbl{
+  font-family:var(--data);font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold);margin:0 0 7px
+}
+.notes textarea{
+  display:block;width:100%;min-height:66px;resize:vertical;
+  background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.16);border-radius:6px;
+  color:var(--cream);font-family:var(--body);font-size:13px;line-height:1.5;padding:8px 9px
+}
+.notes textarea::placeholder{color:rgba(155,134,184,.55)}
+.notes textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 2px rgba(34,232,245,.22)}
 .ex-name{font-weight:700;font-size:15.5px;margin:0;line-height:1.25;color:var(--gold)}
 .ex.skill .ex-name{color:var(--lime)}
 .ex-rx{font-family:var(--data);font-size:11.5px;color:var(--cyan);margin:4px 0 0;letter-spacing:.01em}
@@ -762,7 +793,7 @@ const DAYS = [
 ];
 
 const KEY = 'rutina-circo-v1';
-let state = { day:0, sets:{}, logs:{}, hist:{}, bw:null };
+let state = { day:0, sets:{}, logs:{}, hist:{}, notes:{}, bw:null };
 const app = document.getElementById('app');
 const savedChip = document.getElementById('saved');
 const bwInput = document.getElementById('bwinput');
@@ -791,7 +822,8 @@ function load(){
   DAYS.forEach(d=>d.blocks.forEach(b=>(b.ex||[]).forEach(x=>{
     if(x.def && state.logs[x.id]===undefined) state.logs[x.id]=x.def;
   })));
-  if(!state.hist) state.hist = {};   // datos guardados antes de que existiera la racha
+  if(!state.hist) state.hist = {};    // datos guardados antes de que existiera la racha
+  if(!state.notes) state.notes = {};  // idem, antes de que existieran las notas
   bwInput.value = state.bw || '';
   const limpio = autoClearSets();
   render();
@@ -980,11 +1012,15 @@ function render(){
     (b.ex||[]).forEach(x=>{
       const done = state.sets[x.id]||[];
       const full = done.length >= x.sets;
+      const nota = state.notes[x.id] || '';
       h += `<article class="ex${x.skill?' skill':''}${full?' full':''}" data-card="${x.id}">
         <div class="ex-top"><div style="min-width:0">
           <p class="ex-name">${esc(x.n)}</p>
           <p class="ex-rx">${esc(x.rx)}</p>
-        </div></div>`;
+        </div>
+        <button class="exmenu${nota?' has':''}" data-note="${x.id}" aria-expanded="false"
+          aria-controls="note-${x.id}" aria-label="Notas de ${esc(x.n)}"><i></i><i></i><i></i></button>
+        </div>`;
       if(x.note) h += `<p class="ex-note">${esc(x.note)}</p>`;
       h += `<div class="sets">`;
       for(let i=0;i<x.sets;i++){
@@ -1013,6 +1049,10 @@ function render(){
       if(x.rpt){
         h += `<div class="calc" id="calc-${x.id}" data-calc="${x.id}"></div>`;
       }
+      h += `<div class="notes" id="note-${x.id}">
+        <p class="nlbl">Mis notas</p>
+        <textarea data-note-in="${x.id}" placeholder="Altura del asiento, agarre, cómo se sintió…">${esc(nota)}</textarea>
+      </div>`;
       h += `</article>`;
     });
     h += `</section>`;
@@ -1381,6 +1421,15 @@ function replay(el, cls){
 }
 
 app.addEventListener('click',e=>{
+  const menu = e.target.closest('[data-note]');
+  if(menu){
+    const panel = document.getElementById('note-'+menu.dataset.note);
+    const abrir = !panel.classList.contains('on');
+    panel.classList.toggle('on', abrir);
+    menu.setAttribute('aria-expanded', abrir?'true':'false');
+    if(abrir) panel.querySelector('textarea').focus();
+    return;
+  }
   const bulb = e.target.closest('.bulb');
   if(bulb){
     const id = bulb.dataset.ex, i = +bulb.dataset.i;
@@ -1420,6 +1469,15 @@ app.addEventListener('click',e=>{
 });
 
 app.addEventListener('input',e=>{
+  const nota = e.target.closest('[data-note-in]');
+  if(nota){
+    const id = nota.dataset.noteIn, txt = nota.value.trim();
+    if(txt) state.notes[id] = nota.value; else delete state.notes[id];
+    // los puntitos se prenden o se apagan según haya texto
+    const menu = app.querySelector(`[data-note="${id}"]`);
+    if(menu) menu.classList.toggle('has', !!txt);
+    save(); return;
+  }
   const inp = e.target.closest('[data-log]');
   if(!inp) return;
   const id = inp.dataset.log;
