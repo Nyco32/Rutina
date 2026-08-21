@@ -89,6 +89,20 @@ h1{
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;
 }
+.bwrow{
+  display:flex;align-items:center;justify-content:center;gap:6px;margin:12px 0 0;
+  font-family:var(--data);color:var(--dim)
+}
+.bwrow label{font-size:9px;letter-spacing:.14em;text-transform:uppercase}
+.bwrow input{
+  width:52px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);
+  border-radius:5px;color:var(--cream);font-family:var(--data);font-size:12.5px;
+  padding:4px 6px;text-align:center;appearance:textfield;-moz-appearance:textfield
+}
+.bwrow input::-webkit-outer-spin-button,.bwrow input::-webkit-inner-spin-button{margin:0}
+.bwrow input:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 2px rgba(34,232,245,.22)}
+.bwrow input::placeholder{color:rgba(155,134,184,.55)}
+.bwrow span{font-size:9.5px}
 
 /* ---------- entradas / días ---------- */
 .stubs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:20px 0 6px}
@@ -327,6 +341,9 @@ h1{
 }
 .chip.work .v{color:var(--gold)}
 .chip.warm .v{color:var(--cyan)}
+/* "peso corporal": texto más largo, un punto más chico para que entre */
+.chip .v.txt{font-size:10px;letter-spacing:.01em;line-height:1.2}
+.calc .approach{margin:0;font-size:11.5px}
 .chip .r{display:block;font-family:var(--data);font-size:8.5px;color:var(--dim);margin-top:1px}
 
 .restbtn{
@@ -574,6 +591,11 @@ h1{
     <p class="eyebrow">Función de tres actos</p>
     <h1>RUTINA</h1>
     <p class="tagline">fuerza relativa + hipertrofia · frecuencia 2x por grupo</p>
+    <div class="bwrow" title="Se usa para calcular el peso total en fondos y dominadas lastradas">
+      <label for="bwinput">Peso corporal</label>
+      <input id="bwinput" type="number" inputmode="decimal" min="30" max="200" step="0.5" placeholder="77">
+      <span>kg</span>
+    </div>
   </header>
   <div class="bulbrail"></div>
 
@@ -637,6 +659,11 @@ h1{
 </div>
 
 <script>
+/* Peso corporal por defecto: se usa para calcular el peso TOTAL movido en los
+   ejercicios con lastre (fondos, dominadas). Editable acá o desde el campo de
+   la cabecera — el campo, una vez tocado, tiene prioridad y queda guardado. */
+const BODYWEIGHT = 77;
+
 const DAYS = [
   {
     title:"Acto I — Empuje énfasis + Cuádriceps",
@@ -735,9 +762,25 @@ const DAYS = [
 ];
 
 const KEY = 'rutina-circo-v1';
-let state = { day:0, sets:{}, logs:{}, hist:{} };
+let state = { day:0, sets:{}, logs:{}, hist:{}, bw:null };
 const app = document.getElementById('app');
 const savedChip = document.getElementById('saved');
+const bwInput = document.getElementById('bwinput');
+
+/* ---------- peso corporal (para el cálculo de lastre) ---------- */
+function getBW(){
+  const v = parseFloat(String(state.bw||'').replace(',','.'));
+  return isFinite(v) && v>0 ? v : BODYWEIGHT;
+}
+bwInput.addEventListener('input', ()=>{
+  state.bw = bwInput.value;
+  // los cálculos de lastre ya abiertos dependen del peso corporal: refrescarlos
+  app.querySelectorAll('[data-calc]').forEach(box=>{
+    const x = findEx(box.dataset.calc);
+    if(x && x.lastre) paintCalc(box, x, state.logs[x.id]);
+  });
+  save();
+});
 
 /* ---------- persistencia ---------- */
 function load(){
@@ -749,6 +792,7 @@ function load(){
     if(x.def && state.logs[x.id]===undefined) state.logs[x.id]=x.def;
   })));
   if(!state.hist) state.hist = {};   // datos guardados antes de que existiera la racha
+  bwInput.value = state.bw || '';
   const limpio = autoClearSets();
   render();
   renderStreak();
@@ -808,35 +852,81 @@ function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 /* redondeo a los discos que realmente existen */
 function round(v, step){ return Math.round(v/step)*step; }
 
-function calcData(x, raw){
+/* Ejercicios normales: el peso que se tipea ES el 100% de la serie 1, y las
+   aproximaciones/series 2-3 son porcentajes directos de ese número.
+
+   Ejercicios con lastre:true (fondos, dominadas lastradas): lo que se tipea es
+   solo el lastre agregado, pero lo que el cuerpo mueve es peso corporal +
+   lastre. Aplicar -10%/-20% al lastre solo (como antes) dejaba las series de
+   "aproximación" casi tan pesadas como la efectiva. Ahora el -10%/-20% se
+   aplica sobre el total (corporal + lastre) y se despeja cuánto lastre hace
+   falta para ese total. Si el total buscado es menor al peso corporal, no hay
+   lastre negativo posible: se muestra "peso corporal" (la serie se hace sin
+   nada agregado, o asistida si hiciera falta). */
+function calcData(x, raw, bw){
   const w = parseFloat(String(raw||'').replace(',','.'));
   if(!isFinite(w) || w<=0) return null;
-  const step = x.lastre ? 1.25 : 2.5;  // lastre suele tener discos más chicos
-  return [
-    {c:'warm', k:'sin peso',  v:null,               r:'8 repes'},
-    {c:'warm', k:'60%',       v:round(w*0.60,step), r:'5-6 repes'},
-    {c:'warm', k:'80%',       v:round(w*0.80,step), r:'2-3 repes'},
-    {c:'work', k:'1ª · 100%', v:round(w,0.5),       r:x.rpt[0]+' repes'},
-    {c:'work', k:'2ª · -10%', v:round(w*0.90,step), r:x.rpt[1]+' repes'},
-    {c:'work', k:'3ª · -20%', v:round(w*0.80,step), r:x.rpt[2]+' repes'}
-  ];
+
+  if(x.lastre){
+    const step = 1.25;   // discos de lastre: incrementos chicos
+    const total1 = bw + w;
+    const l2 = round(total1*0.90 - bw, step);
+    const l3 = round(total1*0.80 - bw, step);
+    const mk = (lbl, lastre, reps)=>{
+      const bwOnly = lastre <= 0;
+      return {
+        c:'work', k:lbl,
+        v: bwOnly ? 'BW' : lastre,
+        r: reps+' repes'+(bwOnly ? '' : ' · '+fmtKg(bw+lastre)+' total')
+      };
+    };
+    return {
+      lastre:true,
+      note:'1 serie de 3-5 repes a peso corporal, sin lastre, para activar antes de cargar.',
+      rows:[
+        mk('1ª · 100%', round(w,0.5), x.rpt[0]),
+        mk('2ª · -10%', l2, x.rpt[1]),
+        mk('3ª · -20%', l3, x.rpt[2])
+      ]
+    };
+  }
+
+  const step = 2.5;
+  return {
+    lastre:false,
+    rows:[
+      {c:'warm', k:'sin peso',  v:null,               r:'8 repes'},
+      {c:'warm', k:'60%',       v:round(w*0.60,step), r:'5-6 repes'},
+      {c:'warm', k:'80%',       v:round(w*0.80,step), r:'2-3 repes'},
+      {c:'work', k:'1ª · 100%', v:round(w,0.5),       r:x.rpt[0]+' repes'},
+      {c:'work', k:'2ª · -10%', v:round(w*0.90,step), r:x.rpt[1]+' repes'},
+      {c:'work', k:'3ª · -20%', v:round(w*0.80,step), r:x.rpt[2]+' repes'}
+    ]
+  };
 }
 function fmtKg(v){ return String(Math.round(v*100)/100)+' kg'; }
 function chipHTML(o,i){
+  const txt = o.v==='BW';
+  const val = o.v===null ? '—' : (txt ? 'peso corporal' : fmtKg(o.v));
   return `<div class="chip ${o.c}" style="--i:${i}">
     <span class="k">${o.k}</span>
-    <span class="v" data-v>${o.v===null?'—':fmtKg(o.v)}</span>
+    <span class="v${txt?' txt':''}" data-v>${val}</span>
     <span class="r">${o.r}</span></div>`;
 }
-function calcHTML(rows){
-  return `<p class="ct">Aproximación</p>
-    <div class="calcgrid">${rows.slice(0,3).map((o,i)=>chipHTML(o,i)).join('')}</div>
-    <p class="ct" style="margin-top:9px">Series efectivas</p>
-    <div class="calcgrid">${rows.slice(3).map((o,i)=>chipHTML(o,i+3)).join('')}</div>`;
+function calcHTML(data){
+  const approach = data.lastre
+    ? `<p class="ct">Aproximación</p><p class="approach">${esc(data.note)}</p>`
+    : `<p class="ct">Aproximación</p><div class="calcgrid">${data.rows.slice(0,3).map((o,i)=>chipHTML(o,i)).join('')}</div>`;
+  const workRows = data.lastre ? data.rows : data.rows.slice(3);
+  const work = `<p class="ct" style="margin-top:9px">Series efectivas</p>
+    <div class="calcgrid">${workRows.map((o,i)=>chipHTML(o,i)).join('')}</div>`;
+  return approach + work;
 }
 /* el número rueda hasta el valor nuevo en vez de saltar */
 function roll(el, to){
-  if(to===null){ el.textContent='—'; el.dataset.n=''; return; }
+  if(to===null){ el.textContent='—'; el.dataset.n=''; el.classList.remove('txt'); return; }
+  if(to==='BW'){ el.textContent='peso corporal'; el.dataset.n=''; el.classList.add('txt'); return; }
+  el.classList.remove('txt');
   const from = parseFloat(el.dataset.n);
   el.dataset.n = String(to);
   if(!isFinite(from) || from===to){ el.textContent = fmtKg(to); return; }
@@ -858,18 +948,20 @@ function roll(el, to){
 }
 /* primera vez: los chips entran en cascada. Después solo ruedan los números. */
 function paintCalc(box, x, raw){
-  const rows = calcData(x, raw);
-  if(!rows){ box.innerHTML=''; box.classList.remove('on','cascade'); return; }
+  const data = calcData(x, raw, getBW());
+  if(!data){ box.innerHTML=''; box.classList.remove('on','cascade'); return; }
   const vs = box.querySelectorAll('[data-v]');
-  if(vs.length !== rows.length){
-    box.innerHTML = calcHTML(rows);
+  if(vs.length !== data.rows.length){
+    box.innerHTML = calcHTML(data);
     box.classList.add('on','cascade');
     box.querySelectorAll('[data-v]').forEach((el,i)=>{
-      el.dataset.n = rows[i].v===null ? '' : String(rows[i].v);
+      const v = data.rows[i].v;
+      el.dataset.n = (v===null || v==='BW') ? '' : String(v);
+      el.classList.toggle('txt', v==='BW');
     });
     return;
   }
-  vs.forEach((el,i)=>roll(el, rows[i].v));
+  vs.forEach((el,i)=>roll(el, data.rows[i].v));
 }
 
 function render(){
